@@ -1,25 +1,43 @@
 ---
-description: 'Test engineering for Java: test levels, structure, naming, determinism, test data, parameterized tests, boundary analysis and what to cover'
+description: 'Test engineering for Java: integrated-first strategy with a time budget, coverage target, MC/DC, boundary and property-based testing, structure and determinism'
 applyTo: '**/*Test.java, **/*IT.java, **/*Steps.java, **/*StepDefs.java'
 ---
 
 # Test Design for Java
 
-Strategy and structure of tests. Assertion syntax is in `java-junit5-assertions.instructions.md`. Mocks are in `java-mockito-mocks.instructions.md`. Existing project conventions take precedence over the defaults below.
+Automated tests have two purposes: raise the reliability of the delivered software and raise the team's confidence to change code. Assertion syntax is in `java-junit5-assertions.instructions.md`. Mocks are in `java-mockito-mocks.instructions.md`.
 
-## Choose the Test Level
+Project conventions take precedence over these generic guidelines. When they conflict, follow the project and say so.
 
-| Level | Target | Dependencies | Suffix |
-|---|---|---|---|
-| Unit | Pure functions, value objects, domain rules | None. No mocks, no Spring context | `*Test` |
-| Component | Application services and orchestration | Mocks or fakes for ports | `*Test` |
-| Integration | Adapters (repository, HTTP client, messaging) | Real infrastructure via Testcontainers | `*IT` |
-| End-to-end | Critical user flows | Full system | `*IT` |
+## Strategy: Most Integrated Within the Time Budget
 
-- Write many unit tests, fewer component tests, few integration and end-to-end tests.
-- Test pure functions of the functional core as plain input → output.
-- Test an adapter against the real technology. Do not mock the database, HTTP server or broker to test its own adapter.
+- Write the most integrated test that runs within the suite's time limit. The closer to production conditions, the higher the confidence.
+- Pure functions, value objects and domain rules need no infrastructure, so they are tested directly (input → output).
+- Test adapters (repository, HTTP client, messaging) against the real technology (Testcontainers) when the cost is acceptable.
+- When a resource is too slow or costly to start, replace it with a fake first, then a mock (see `java-mockito-mocks.instructions.md`).
+- Monitor suite execution time. The team defines the limit. When a test slows the build, reduce its integration depth, not its assertions.
 - Do not start a Spring context for logic that does not need it.
+
+| Target | Typical test | Suffix |
+|---|---|---|
+| Pure functions, value objects, domain rules | Direct call, no doubles | `*Test` |
+| Application services and use cases | Real collaborators, fakes or mocks for slow resources | `*Test` |
+| Adapters and full flows | Real infrastructure | `*IT` |
+
+## Coverage
+
+- Target 90% or more coverage.
+- Coverage counts only when tests explore the decision paths. Touching a line is not enough.
+- Do not judge test quality by coverage alone. A single metric invites tests without assertions or with few assertions.
+- Infrastructure code loaded by the framework and not called directly may stay uncovered.
+- A test must fail when the behavior changes. A refactoring that changes behavior and breaks no test shows a gap.
+
+## Techniques
+
+- **MC/DC (modified condition/decision coverage)**: for a decision with several conditions, write tests where changing a single condition, with the others fixed, changes the decision. Cover each condition this way.
+- **Boundary testing**: for each comparison (`>`, `<`, `>=`), test the value at the limit, just below and just above.
+- **Property-based testing**: after the systematic tests, generate values within ranges and types (for example jqwik) to explore further.
+- JaCoCo reports line and branch coverage. MC/DC is verified by test design, with one truth-table row per condition under test.
 
 ## Structure
 
@@ -48,11 +66,8 @@ void shouldRejectPaymentWhenOrderIsCanceled() {
 
 ## Qualities of a Good Test (FIRST)
 
-- **Fast**: unit tests run in milliseconds.
-- **Isolated**: no dependency on execution order or on other tests.
-- **Repeatable**: same result on every run and environment.
-- **Self-validating**: pass or fail through assertions, never by reading output.
-- **Timely**: written with or just before the code. For a bug fix, write the failing regression test first.
+- **Fast**, **Isolated**, **Repeatable**, **Self-validating**, **Timely**.
+- For a bug fix, write the failing regression test first.
 
 ## Test Behavior, Not Implementation
 
@@ -65,47 +80,36 @@ void shouldRejectPaymentWhenOrderIsCanceled() {
 - Use `Clock.fixed(...)` or pass `Instant` as a parameter. Do not call `Instant.now()` in tests or in code under test.
 - Do not use `Thread.sleep`. Use Awaitility for asynchronous conditions.
 - Use `@TempDir` for files.
-- Do not share mutable state between tests (static fields, singletons).
+- Do not share mutable state between tests.
 - Do not use random data without a fixed seed.
 
 ## Test Data
 
 - Create data with test builders or object mothers (`anOrder()`, `canceledOrder()`).
-- Set only the fields relevant to the scenario. Let defaults fill the rest.
+- Set only the fields relevant to the scenario.
 - Use the `with` methods of immutable `record` types to vary one field.
-- Do not copy large literals across tests.
 
 ## Parameterized Tests
 
-- Use `@ParameterizedTest` with `@CsvSource`, `@MethodSource` or `@EnumSource` when the same behavior is checked with different inputs.
-- Do not use parameterization to merge different behaviors into one test.
+- Use `@ParameterizedTest` with `@CsvSource`, `@MethodSource` or `@EnumSource` for the same behavior with different inputs, including boundary values.
+- Do not merge different behaviors into one parameterized test.
 
-```java
-@ParameterizedTest
-@CsvSource({"0, 0", "100, 90", "1000, 850"})
-void shouldApplyTieredDiscount(int amount, int expected) {
-    assertEquals(expected, Discount.apply(amount));
-}
-```
+## Test Code Complexity
 
-## What to Cover
-
-- Cover each equivalence class of input and its boundaries (min, max, just below, just above, empty, null where allowed).
-- Cover every variant of a `sealed` type and every branch of its `switch`.
-- Cover error paths and invalid input, not only the happy path.
-- Treat coverage as an indicator. Do not write tests only to raise a number.
+- Test files follow the CDD rules in `java-cdd.instructions.md` with their own limit.
+- Keep conditionals and loops out of test methods.
 
 ## Avoid
 
 - Tests that depend on execution order.
-- Logic (`if`, loops) inside tests.
 - `@Disabled` without a linked issue.
 - Overly broad tests that fail for several unrelated reasons.
 - Asserting on `toString()` or log output unless it is the contract.
 - Catching exceptions manually. Use `assertThrows`.
+- Raising coverage with tests that have no assertions.
 
 ## Validation
 
-- Run unit tests: `mvn test` or `./gradlew test`.
-- Run integration tests: `mvn verify` or `./gradlew check`.
+- Unit tests: `mvn test` or `./gradlew test`. Integration tests: `mvn verify` or `./gradlew check`.
+- Coverage: `jacoco` report, target 90% or more.
 - A new or changed behavior has at least one test that fails without the change.
