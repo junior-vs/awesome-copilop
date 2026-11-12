@@ -7,6 +7,8 @@ applyTo: '**/*.java'
 
 Language-level techniques for writing functional-style Java. For architecture and OO integration see `java-functional-oo-integration.instructions.md`.
 
+Project conventions take precedence over these generic guidelines. When they conflict, follow the project and say so.
+
 ## Project Context
 
 - Language: Java 21 (minimum 17 for `record` and `sealed`).
