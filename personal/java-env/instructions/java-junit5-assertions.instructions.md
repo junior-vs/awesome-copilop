@@ -9,6 +9,8 @@ Rules for writing assertions with JUnit Jupiter (5.8+ and 6; the `org.junit.jupi
 
 If the project already standardizes on AssertJ, use AssertJ for new assertions. Never rewrite a project's existing assertion style to match this file.
 
+Project conventions take precedence over these generic guidelines. When they conflict, follow the project and say so.
+
 ## Imports
 
 - Use explicit static imports from `org.junit.jupiter.api.Assertions`.

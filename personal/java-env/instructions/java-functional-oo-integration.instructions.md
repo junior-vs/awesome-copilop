@@ -7,6 +7,8 @@ applyTo: '**/*.java'
 
 Architecture-level guidance for combining both paradigms. Language techniques are in `java-functional-programming.instructions.md`.
 
+Project conventions take precedence over these generic guidelines. When they conflict, follow the project and say so.
+
 ## Core Approach
 
 **Functional core, object-oriented shell** (*Functional Core, Imperative Shell*).
@@ -67,6 +69,22 @@ public class OrderService {
 | Decorator | Function composition |
 | Builder | Immutable copy (`with`) |
 | Visitor | Pattern matching on `sealed` type |
+
+## Cohesive Controllers and Application Services
+
+- Give each use case its own class (for example, `NewAccountController` or `NewAccountUseCase`). One public method is typical, not mandatory.
+- Make the class 100% cohesive: every field is used by every method.
+- Fields are dependencies only (repositories, gateways, `Clock`). Do not keep mutable value state in them.
+- Do not group every operation of a resource in one controller only because they share the resource name.
+- Add a layer only when it earns its place. The controller or application service can be the use case itself.
+- Stateless operations can be static methods or functions.
+
+## Request DTOs
+
+- Declare request and form DTOs as `record`.
+- Allow simple behavior on the DTO's own data: validation rules, derived values and conversion to the domain object (`toModel(...)`).
+- Do not do I/O or repository access in a DTO.
+- Do not put rules that need other aggregates in a DTO.
 
 ## Persistence (JPA)
 

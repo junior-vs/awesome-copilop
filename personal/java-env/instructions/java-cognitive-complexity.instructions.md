@@ -7,10 +7,12 @@ applyTo: '**/*.java'
 
 Limit the control-flow complexity of each method so it can be read top to bottom without effort. Based on the Cognitive Complexity metric (G. Ann Campbell, SonarSource), the same metric as Sonar rule `java:S3776`.
 
+Project conventions take precedence over these generic guidelines. When they conflict, follow the project and say so.
+
 ## Relation to Other Guidelines
 
 - This file governs **control flow per method**.
-- `java-cdd.instructions.md` governs **coupling and size per unit**, with team-defined limits.
+- `java-cdd.instructions.md` governs **ICP per file** (including coupling) and combines this metric with two others. Limits are team-defined.
 - Apply both. Do not add the two scores together.
 - Methods are not scored for existing. Extracting a well-named method is encouraged (it "shorthands" several statements into one call).
 

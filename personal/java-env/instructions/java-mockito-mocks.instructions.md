@@ -7,6 +7,8 @@ applyTo: '**/*Test.java, **/*IT.java, **/*Steps.java, **/*StepDefs.java'
 
 Rules for using Mockito with JUnit 5. Test strategy is in `java-test-design.instructions.md`. Assertions are in `java-junit5-assertions.instructions.md`.
 
+Project conventions take precedence over these generic guidelines. When they conflict, follow the project and say so.
+
 ## Test Doubles
 
 | Double | Purpose | Use |
@@ -19,14 +21,15 @@ Rules for using Mockito with JUnit 5. Test strategy is in `java-test-design.inst
 
 ## When to Mock
 
+- Prefer the real collaborator. Mock or fake only a resource that is too slow or costly to start and prepare, such as an external service, a broker or a remote API.
+- Prefer a **fake** (lightweight implementation with the same public behavior) when many tests share the same collaborator behavior or the interaction is stateful.
+- Prefer a **mock** when you must force an error or verify that a side effect was requested.
 - Mock **ports at the boundary of the code under test**: repositories, gateways, message publishers, external clients.
 - Do not mock:
   - Pure functions, value objects, `record` types, DTOs, domain entities. Create real instances.
   - Collections, `String`, `Optional` or other JDK types.
   - The class under test.
   - Types you do not own (third-party clients). Wrap them in your own adapter, mock the adapter, and test the adapter with an integration test.
-- Prefer a **fake** (in-memory implementation) when many tests share the same collaborator behavior or when the interaction is stateful.
-- Prefer a **mock** when you must force an error or verify that a side effect was requested.
 - A test that needs more than three mocks signals a class with too many responsibilities. Refactor the class.
 
 ## Setup
