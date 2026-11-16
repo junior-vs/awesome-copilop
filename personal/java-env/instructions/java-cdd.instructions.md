@@ -65,7 +65,7 @@ Measuring is cold data. Evaluate with all three metrics together. A single metri
 
 ## Limits by Context
 
-- **New project**: ICP limit of 10 per file. It forces early attention to structure.
+- **New project**: ICP limit of 15 per file. It forces early attention to structure.
 - **Legacy project**: take the 5 most complex classes. The 5th one's ICP is the starting limit (for example, 50). Do not use a limit that every touched file would exceed.
 - When a legacy file is touched, measure it. Use the results to see where refactoring is most needed.
 - Raise or lower a limit only by team decision.
@@ -105,9 +105,9 @@ Measuring is cold data. Evaluate with all three metrics together. A single metri
 
 ## Team Decisions (edit as the team decides)
 
-- `switch` counts 1 per block. Alternative: 1 per `case`.
-- Lambdas and method references passed as arguments do not count. Alternative: 1 each.
-- Framework and library classes do not count as coupling. Alternative: count them.
+- `switch` counts 1 per block.
+- Lambdas and method references passed as arguments do not count
+- Framework and library classes do not count as coupling.
 
 ## Review
 
