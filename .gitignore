@@ -33,3 +33,11 @@ bin/
 # Open PR board canvas state (local only)
 .github/extensions/open-pr-board/state/
 .vs
+
+skills/
+
+
+.privado
+.github/
+.agents/
+ 
